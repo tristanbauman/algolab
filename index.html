@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AlgoLab — YouTube Algorithm Simulator</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f5f5f4;--bg3:#efefed;
+  --text:#0a0a0a;--text2:#555;--text3:#888;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --radius:8px;--radius-lg:12px;
+  --yellow:#FFE01B;--yellow-text:#0a0a0a;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --amber:#633806;--amber-bg:#FAEEDA;
+  --red:#791F1F;--red-bg:#FCEBEB;
+  --purple-bg:#EEEDFE;--purple:#3C3489;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+    --text:#f0f0f0;--text2:#aaa;--text3:#666;
+    --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+  }
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;max-width:480px;margin:0 auto;padding:0 16px 80px}
+.screen{display:none}.screen.active{display:block}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 12px;border-bottom:0.5px solid var(--border);margin-bottom:18px}
+.topbar-title{font-size:16px;font-weight:600;color:var(--text)}
+.back-btn{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--text2);background:none;border:none;cursor:pointer;padding:0}
+.back-btn:hover{color:var(--text)}
+.logo-row{display:flex;align-items:center;gap:12px;padding:20px 0 4px}
+.logo-box{width:40px;height:40px;border-radius:10px;background:var(--yellow);display:flex;align-items:center;justify-content:center}
+.logo-box i{font-size:22px;color:#0a0a0a}
+.logo-name{font-size:20px;font-weight:700;color:var(--text)}
+.logo-sub{font-size:12px;color:var(--text2);margin-top:1px}
+.section-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin:20px 0 10px}
+.channel-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .15s}
+.channel-card:hover{border-color:var(--border2)}
+.ch-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0}
+.ch-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.ch-meta{font-size:12px;color:var(--text2)}
+.new-btn{width:100%;padding:14px;border:1.5px dashed var(--border2);border-radius:var(--radius-lg);background:none;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:4px;transition:all .15s}
+.new-btn:hover{background:var(--bg2);color:var(--text);border-color:var(--text3)}
+.form-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.flabel{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:7px;display:block}
+.finput{width:100%;padding:10px 12px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-size:14px;margin-bottom:14px;outline:none;transition:border-color .15s}
+.finput:focus{border-color:#FFE01B}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{font-size:12px;padding:5px 12px;border-radius:100px;border:0.5px solid var(--border2);background:var(--bg);color:var(--text2);cursor:pointer;transition:all .15s}
+.chip:hover{border-color:var(--text3);color:var(--text)}
+.chip.sel{background:var(--bg3);color:var(--text);border-color:var(--text3);font-weight:500}
+.primary-btn{width:100%;padding:14px;border:none;border-radius:var(--radius);background:var(--yellow);color:#0a0a0a;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.primary-btn:hover{opacity:.88}
+.ghost-btn{width:100%;padding:12px;border:0.5px solid var(--border2);border-radius:var(--radius);background:none;color:var(--text);font-size:14px;cursor:pointer;margin-top:8px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-card{background:var(--bg2);border-radius:var(--radius);padding:12px}
+.stat-lbl{font-size:11px;color:var(--text2);margin-bottom:3px}
+.stat-val{font-size:22px;font-weight:600;color:var(--text)}
+.stat-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.tabs{display:flex;border-bottom:0.5px solid var(--border);margin-bottom:18px}
+.tab{flex:1;font-size:12px;font-weight:500;padding:9px 4px;border:none;background:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;text-align:center}
+.tab.active{color:var(--text);border-bottom-color:var(--yellow);font-weight:600}
+.tsec{display:none}.tsec.active{display:block}
+.vid-row{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .15s}
+.vid-row:hover{border-color:var(--border2)}
+.vid-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.vid-meta{font-size:11px;color:var(--text2);margin-bottom:8px}
+.ret-bar{height:4px;background:var(--bg3);border-radius:2px;margin-bottom:7px;overflow:hidden}
+.ret-fill{height:4px;border-radius:2px}
+.vid-stats{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--text2)}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;margin-left:6px}
+.b-push{background:var(--green-bg);color:var(--green)}
+.b-hold{background:var(--amber-bg);color:var(--amber)}
+.b-bury{background:var(--red-bg);color:var(--red)}
+.alg-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.alg-row:last-child{border-bottom:none}
+.alg-t{font-size:11px;font-weight:600;color:var(--text2);min-width:40px;padding-top:1px}
+.alg-e{font-size:12px;color:var(--text);flex:1;line-height:1.5}
+.alg-tag{font-size:10px;padding:2px 7px;border-radius:4px;flex-shrink:0;font-weight:500}
+.tag-p{background:var(--green-bg);color:var(--green)}
+.tag-n{background:var(--red-bg);color:var(--red)}
+.tag-u{background:var(--bg3);color:var(--text2)}
+.lesson-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px}
+.lesson-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;background:var(--purple-bg);color:var(--purple);margin-bottom:7px}
+.lesson-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px}
+.lesson-body{font-size:12px;color:var(--text2);line-height:1.6}
+.tip-box{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px;border-left:3px solid var(--yellow)}
+.phase-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)}
+.phase-row:last-child{border-bottom:none}
+.phase-dot{width:9px;height:9px;border-radius:50%;margin-top:3px;flex-shrink:0}
+.phase-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:1px}
+.phase-sub{font-size:11px;color:var(--text2)}
+.empty-state{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--text2)}
+.del-btn{background:none;border:none;color:var(--text2);cursor:pointer;font-size:13px;padding:4px 8px;border-radius:4px}
+.del-btn:hover{background:var(--red-bg);color:var(--red)}
+.result-box{background:var(--bg2);border-radius:var(--radius);padding:14px;font-size:13px;color:var(--text);line-height:1.6;margin-top:12px;display:none;border-left:3px solid var(--yellow)}
+.ch-detail-hdr{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:14px;background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg)}
+.legend-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.recent-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:0.5px solid var(--border)}
+.recent-item:last-child{border-bottom:none}
+</style>
+</head>
+<body>
+
+<div id="screen-home" class="screen active">
+  <div class="logo-row">
+    <div class="logo-box"><i class="ti ti-flask"></i></div>
+    <div>
+      <div class="logo-name">AlgoLab</div>
+      <div class="logo-sub">Practice YouTube without risking your real channel</div>
+    </div>
+  </div>
+  <div class="section-label">Your channels</div>
+  <div id="channel-list"><div class="empty-state">No channels yet. Create one below.</div></div>
+  <button class="new-btn" onclick="goTo('screen-new')"><i class="ti ti-plus" style="font-size:17px"></i> Create new channel</button>
+</div>
+
+<div id="screen-new" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> Back</button>
+    <div class="topbar-title">New channel</div>
+    <div style="width:50px"></div>
+  </div>
+  <div class="form-card">
+    <label class="flabel">Channel name</label>
+    <input class="finput" type="text" id="new-name" placeholder="e.g. TristanSports" maxlength="40">
+    <label class="flabel">Niche</label>
+    <div class="chips" id="new-niche">
+      <div class="chip" onclick="pick(this)">Hockey</div>
+      <div class="chip" onclick="pick(this)">Golf</div>
+      <div class="chip" onclick="pick(this)">Gaming</div>
+      <div class="chip" onclick="pick(this)">Fitness</div>
+      <div class="chip" onclick="pick(this)">Food</div>
+      <div class="chip" onclick="pick(this)">Finance</div>
+      <div class="chip" onclick="pick(this)">Comedy</div>
+      <div class="chip" onclick="pick(this)">Tech</div>
+      <div class="chip" onclick="pick(this)">Music</div>
+      <div class="chip" onclick="pick(this)">Lifestyle</div>
+      <div class="chip" onclick="pick(this)">Sports</div>
+      <div class="chip" onclick="pick(this)">Custom</div>
+    </div>
+    <div id="custom-niche-wrap" style="display:none">
+      <input class="finput" type="text" id="custom-niche" placeholder="Enter your niche...">
+    </div>
+    <label class="flabel">Channel color</label>
+    <div class="chips" id="new-color">
+      <div class="chip sel" onclick="pick(this)" data-color="#FFE01B" data-textcolor="#0a0a0a">Yellow</div>
+      <div class="chip" onclick="pick(this)" data-color="#378ADD" data-textcolor="#ffffff">Blue</div>
+      <div class="chip" onclick="pick(this)" data-color="#1D9E75" data-textcolor="#ffffff">Green</div>
+      <div class="chip" onclick="pick(this)" data-color="#D85A30" data-textcolor="#ffffff">Coral</div>
+      <div class="chip" onclick="pick(this)" data-color="#7F77DD" data-textcolor="#ffffff">Purple</div>
+      <div class="chip" onclick="pick(this)" data-color="#E24B4A" data-textcolor="#ffffff">Red</div>
+    </div>
+  </div>
+  <button class="primary-btn" onclick="createChannel()">Create channel</button>
+  <button class="ghost-btn" onclick="goTo('screen-home')">Cancel</button>
+</div>
+
+<div id="screen-channel" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goTo('screen-home')"><i class="ti ti-arrow-left" style="font-size:15px"></i> All channels</button>
+    <div class="topbar-title" id="ch-topbar-name">Channel</div>
+    <button class="del-btn" onclick="deleteChannel()">Delete</button>
+  </div>
+
+  <div class="ch-detail-hdr">
+    <div id="ch-hdr-av" style="width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0"></div>
+    <div>
+      <div style="font-size:15px;font-weight:600;color:var(--text)" id="ch-hdr-name"></div>
+      <div style="font-size:12px;color:var(--text2)" id="ch-hdr-meta"></div>
+      <div style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;background:var(--purple-bg);color:var(--purple);padding:3px 8px;border-radius:4px;margin-top:5px"><i class="ti ti-flask" style="font-size:11px"></i> Sandbox channel</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="swTab('stats',this)">Stats</button>
+    <button class="tab" onclick="swTab('upload',this)">Upload</button>
+    <button class="tab" onclick="swTab('videos',this)">Videos</button>
+    <button class="tab" onclick="swTab('chart',this)">Chart</button>
+    <button class="tab" onclick="swTab('lessons',this)">Lessons</button>
+  </div>
+
+  <div id="tab-stats" class="tsec active">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-lbl">Subscribers</div><div class="stat-val" id="s-subs">0</div><div class="stat-sub" id="s-subs-d">—</div></div>
+      <div class="stat-card"><div class="stat-lbl">Total views</div><div class="stat-val" id="s-views">0</div><div class="stat-sub" id="s-views-d">—</div></div>
+      <div class="stat-card"><div class="stat-lbl">Avg CTR</div><div class="stat-val" id="s-ctr">—</div><div class="stat-sub">Benchmark: 4–6%</div></div>
+      <div class="stat-card"><div class="stat-lbl">Alg trust</div><div class="stat-val" id="s-trust">0%</div><div class="stat-sub" id="s-trust-d">—</div></div>
+    </div>
+    <div class="tip-box" id="s-tip">Upload your first video to start building algorithm trust.</div>
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Recent uploads</div>
+      <div id="recent-list"><div style="font-size:12px;color:var(--text2)">No uploads yet.</div></div>
+    </div>
+    <button class="primary-btn" onclick="swTab('upload',document.querySelectorAll('.tab')[1])">Upload a video</button>
+  </div>
+
+  <div id="tab-upload" class="tsec">
+    <div class="form-card">
+      <label class="flabel">Video title</label>
+      <input class="finput" type="text" id="vid-title" placeholder="e.g. I tried every NHL team's training routine...">
+      <label class="flabel">Format</label>
+      <div class="chips" id="p-fmt">
+        <div class="chip sel" onclick="pick(this);fmtChange()">Short (under 60s)</div>
+        <div class="chip" onclick="pick(this);fmtChange()">Long form (5–15 min)</div>
+        <div class="chip" onclick="pick(this);fmtChange()">Vlog</div>
+      </div>
+      <div id="thumb-block">
+        <label class="flabel">Thumbnail quality</label>
+        <div class="tip-box">For long form, thumbnail drives CTR which decides algorithm reach in the first 2 hours.</div>
+        <div class="chips" id="p-thumb">
+          <div class="chip" onclick="pick(this)">Basic (phone snap)</div>
+          <div class="chip sel" onclick="pick(this)">Good (edited)</div>
+          <div class="chip" onclick="pick(this)">Elite (pro design)</div>
+        </div>
+      </div>
+      <label class="flabel">Hook strength (first 3 seconds)</label>
+      <div class="tip-box" id="hook-tip">For Shorts, the hook is everything — viewers swipe in under a second.</div>
+      <div class="chips" id="p-hook">
+        <div class="chip" onclick="pick(this)">No hook</div>
+        <div class="chip sel" onclick="pick(this)">Medium hook</div>
+        <div class="chip" onclick="pick(this)">Strong hook</div>
+      </div>
+      <label class="flabel">Posting time</label>
+      <div class="chips" id="p-time">
+        <div class="chip" onclick="pick(this)">Off-peak (midnight)</div>
+        <div class="chip sel" onclick="pick(this)">Average (noon)</div>
+        <div class="chip" onclick="pick(this)">Peak (4–6pm)</div>
+      </div>
+      <label class="flabel">Consistency streak</label>
+      <div class="chips" id="p-streak">
+        <div class="chip sel" onclick="pick(this)">No recent posts</div>
+        <div class="chip" onclick="pick(this)">Posted last 3 days</div>
+        <div class="chip" onclick="pick(this)">Daily 7+ days</div>
+      </div>
+      <button class="primary-btn" onclick="uploadVideo()">Simulate upload</button>
+      <div class="result-box" id="upload-result"></div>
+    </div>
+  </div>
+
+  <div id="tab-videos" class="tsec">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Tap any video to see its performance chart</div>
+    <div id="vid-list"><div class="empty-state">No videos yet. Go to Upload.</div></div>
+  </div>
+
+  <div id="tab-chart" class="tsec">
+    <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px" id="chart-title">Upload a video to see its performance curve</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px" id="chart-sub"></div>
+    <div style="position:relative;width:100%;height:210px;margin-bottom:12px">
+      <canvas id="perf-chart" role="img" aria-label="48-hour view performance chart">48-hour views per hour for the selected video.</canvas>
+    </div>
+    <div class="legend-row">
+      <span class="legend-item"><span class="legend-dot" style="background:#FFE01B"></span>Cold start</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#EF9F27"></span>CTR check</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#378ADD"></span>Retention</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#1D9E75"></span>Push decision</span>
+      <span class="legend-item"><span class="legend-dot" style="background:#888780"></span>Long tail</span>
+    </div>
+    <div id="chart-stats" style="display:none">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">Peak hour</div><div class="stat-val" id="cv-peak">—</div><div class="stat-sub">Most views in 1hr</div></div>
+        <div class="stat-card"><div class="stat-lbl">48h total</div><div class="stat-val" id="cv-total">—</div><div class="stat-sub">Simulated views</div></div>
+        <div class="stat-card"><div class="stat-lbl">Decision</div><div class="stat-val" id="cv-dec" style="font-size:14px">—</div><div class="stat-sub" id="cv-dec-d"></div></div>
+        <div class="stat-card"><div class="stat-lbl">Trajectory</div><div class="stat-val" id="cv-traj" style="font-size:14px">—</div><div class="stat-sub" id="cv-traj-d"></div></div>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">Algorithm phases</div>
+      <div class="phase-row"><div class="phase-dot" style="background:#FFE01B"></div><div><div class="phase-title">0–2h: cold start test</div><div class="phase-sub">Serves ~200–500 impressions, measures CTR only</div></div></div>
+      <div class="phase-row"><div class="phase-dot" style="background:#EF9F27"></div><div><div class="phase-title">2–6h: CTR verdict</div><div class="phase-sub">Above 4% expands to thousands. Below 3% — stops here</div></div></div>
+      <div class="phase-row"><div class="phase-dot" style="background:#378ADD"></div><div><div class="phase-title">6–24h: retention check</div><div class="phase-sub">Above 40% average view duration = strong push signal</div></div></div>
+      <div class="phase-row"><div class="phase-dot" style="background:#1D9E75"></div><div><div class="phase-title">24–48h: final decision</div><div class="phase-sub">Pushes to browse/suggested or buries permanently</div></div></div>
+      <div class="phase-row"><div class="phase-dot" style="background:#888780"></div><div><div class="phase-title">48h+: long tail</div><div class="phase-sub">Search keeps it alive if Phase 4 was positive</div></div></div>
+    </div>
+  </div>
+
+  <div id="tab-lessons" class="tsec">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Unlocked as you upload videos</div>
+    <div id="lessons-wrap"></div>
+  </div>
+</div>
+
+<script>
+var APP={channels:[],activeIdx:null,chartInst:null};
+var TIPS=['For Shorts, hook is everything. Viewers swipe in under one second.','Posting in the same niche 3+ times teaches the algorithm your category.','CTR above 6% triggers 10–50x distribution expansion.','Off-niche posts tank sub conversion to near zero.','Peak time posting (4–6pm) gives a 20–30% larger initial impression pool.','A 7-day streak makes YouTube notify subscribers more aggressively.','Sub conversion is 0.1–1% of views — always. That is completely normal.','The algorithm judges viewer behavior signals, not content quality.'];
+var tipI=0;
+var LESSONS=[
+  {id:'la',always:true,tag:'Always unlocked',title:'Sub conversion is 0.1–1% — always',body:'10,000 views = roughly 10–100 new subscribers. MrBeast averages ~0.3%. Never panic when your sub count barely moves after a great video. It is completely normal.'},
+  {id:'lb',tag:'Post 3 same-niche videos',title:'Niche consistency multiplies algorithm trust',body:'After 3+ same-niche videos, YouTube categorizes your channel and surfaces it to interested viewers automatically. Post off-niche and you reset this signal — it takes 2–3 more videos just to recover.'},
+  {id:'lc',tag:'Post a Short + long form video',title:'Shorts grow audience, long form builds loyalty',body:'Shorts surface to non-subscribers via the Shorts feed — pure discovery. Long form goes to your existing subscribers. Channels using both formats grow 2x faster than single-format creators.'},
+  {id:'ld',tag:'Get a video with CTR above 6%',title:'CTR is the single biggest lever you control',body:'6%+ CTR is the threshold where YouTube bets hard on your video. For long form it is almost entirely about your thumbnail and title. For Shorts it is your hook and first frame. One great hook outperforms 10 average videos.'},
+  {id:'le',tag:'Post 5+ videos total',title:'New channels get limited reach by default',body:'YouTube treats new channels as unproven. After 5+ consistent videos in a niche, trust scores increase and the initial test pool for each video grows. Most creators quit at video 2 or 3 — the algorithm rewards whoever stays.'},
+  {id:'lf',tag:'Select Daily 7+ days streak',title:'Consistency is the highest-leverage action on YouTube',body:'A 7-day posting streak triggers YouTube to notify subscribers more proactively and widens your initial impression pool by 20–30%. This signal compounds significantly over time.'}
+];
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+  document.getElementById(id).classList.add('active');
+  if(id==='screen-home')renderHome();
+  if(id==='screen-channel')renderChannel();
+}
+
+function pick(el){
+  el.closest('.chips').querySelectorAll('.chip').forEach(function(c){c.classList.remove('sel')});
+  el.classList.add('sel');
+  if(el.closest('.chips').id==='new-niche'){
+    document.getElementById('custom-niche-wrap').style.display=el.textContent.trim()==='Custom'?'block':'none';
+  }
+}
+
+function getSel(id){var s=document.getElementById(id)&&document.getElementById(id).querySelector('.sel');return s?s.textContent.trim():'';}
+function getSelData(id,attr){var s=document.getElementById(id)&&document.getElementById(id).querySelector('.sel');return s?(s.getAttribute(attr)||s.textContent.trim()):''}
+
+function initials(name){return name.trim().split(/\s+/).map(function(w){return w[0]||''}).join('').toUpperCase().slice(0,2)||'?';}
+
+function createChannel(){
+  var name=document.getElementById('new-name').value.trim();
+  var niche=getSel('new-niche');
+  if(niche==='Custom'){niche=document.getElementById('custom-niche').value.trim()||'Custom';}
+  if(!name){document.getElementById('new-name').focus();return;}
+  if(!niche){alert('Please pick a niche');return;}
+  var color=getSelData('new-color','data-color')||'#FFE01B';
+  var textcolor=getSelData('new-color','data-textcolor')||'#0a0a0a';
+  APP.channels.push({name:name,niche:niche,color:color,textcolor:textcolor,subs:0,views:0,trust:0,videos:[],nicheCounts:{},hasShort:false,hasLong:false,ctrs:[],unlocked:[]});
+  APP.activeIdx=APP.channels.length-1;
+  document.getElementById('new-name').value='';
+  document.getElementById('custom-niche').value='';
+  goTo('screen-channel');
+}
+
+function deleteChannel(){
+  if(!confirm('Delete "'+APP.channels[APP.activeIdx].name+'" and all its data? This cannot be undone.'))return;
+  APP.channels.splice(APP.activeIdx,1);
+  APP.activeIdx=null;
+  if(APP.chartInst){APP.chartInst.destroy();APP.chartInst=null;}
+  goTo('screen-home');
+}
+
+function renderHome(){
+  var list=document.getElementById('channel-list');
+  if(!APP.channels.length){list.innerHTML='<div class="empty-state">No channels yet. Create one below.</div>';return;}
+  list.innerHTML=APP.channels.map(function(ch,i){
+    return '<div class="channel-card" onclick="openChannel('+i+')">'
+      +'<div class="ch-av" style="background:'+ch.color+';color:'+ch.textcolor+'">'+initials(ch.name)+'</div>'
+      +'<div style="flex:1;min-width:0"><div class="ch-name">'+ch.name+'</div><div class="ch-meta">'+ch.niche+' · '+ch.subs.toLocaleString()+' subs · '+ch.videos.length+' video'+(ch.videos.length!==1?'s':'')+'</div></div>'
+      +'<i class="ti ti-chevron-right" style="color:var(--text2);font-size:16px"></i>'
+      +'</div>';
+  }).join('');
+}
+
+function openChannel(i){
+  APP.activeIdx=i;
+  if(APP.chartInst){APP.chartInst.destroy();APP.chartInst=null;}
+  goTo('screen-channel');
+}
+
+function renderChannel(){
+  var ch=APP.channels[APP.activeIdx];if(!ch)return;
+  document.getElementById('ch-topbar-name').textContent=ch.name;
+  var av=document.getElementById('ch-hdr-av');
+  av.style.background=ch.color;av.style.color=ch.textcolor;av.textContent=initials(ch.name);
+  document.getElementById('ch-hdr-name').textContent=ch.name;
+  document.getElementById('ch-hdr-meta').textContent=ch.niche+' · '+ch.subs.toLocaleString()+' subs · '+ch.videos.length+' video'+(ch.videos.length!==1?'s':'');
+  updateStats();renderVidList();renderLessons();
+  swTab('stats',document.querySelectorAll('.tab')[0]);
+}
+
+function swTab(name,el){
+  document.querySelectorAll('.tsec').forEach(function(s){s.classList.remove('active')});
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  if(el)el.classList.add('active');
+}
+
+function fmtChange(){
+  var fmt=getSel('p-fmt');
+  var isShort=fmt==='Short (under 60s)';
+  document.getElementById('thumb-block').style.display=isShort?'none':'block';
+  document.getElementById('hook-tip').textContent=isShort?'For Shorts, the hook is everything — viewers swipe away in under one second. Your first frame has to grab them.':'A strong opening line keeps viewers watching and significantly boosts your retention score.';
+}
+
+function scoreVideo(fmt,thumb,hook,time,streak,ch){
+  var s=0,isShort=fmt==='Short (under 60s)';
+  if(isShort)s+=22;else if(fmt==='Long form (5–15 min)')s+=14;else s+=9;
+  if(!isShort){if(thumb==='Elite (pro design)')s+=26;else if(thumb==='Good (edited)')s+=15;else s+=3;}
+  if(hook==='Strong hook')s+=28;else if(hook==='Medium hook')s+=13;else s+=1;
+  if(time==='Peak (4–6pm)')s+=8;else if(time==='Average (noon)')s+=4;
+  if(streak==='Daily 7+ days')s+=10;else if(streak==='Posted last 3 days')s+=5;
+  var nc=ch.nicheCounts[ch.niche]||0;
+  if(nc>=5)s+=10;else if(nc>=2)s+=5;
+  if(ch.videos.length>=10)s+=6;else if(ch.videos.length>=5)s+=3;
+  s+=Math.floor(Math.random()*10)-2;
+  return Math.max(4,Math.min(s,100));
+}
+
+function buildCurve(sc,fmt,time,alg){
+  var isShort=fmt==='Short (under 60s)';
+  var pm=time==='Peak (4–6pm)'?1.3:time==='Average (noon)'?1.0:0.7;
+  var am=alg==='push'?1.0:alg==='hold'?0.55:0.22;
+  var base=isShort?sc*14:sc*5;
+  return[1,2,3,5,6,12,24,36,48].map(function(h){
+    var v;
+    if(h<=2)v=Math.round(base*0.09*pm*(sc/80));
+    else if(h<=6){var cb=alg==='push'?3.8:alg==='hold'?1.9:0.8;v=Math.round(base*0.20*pm*cb*(sc/80));}
+    else if(h<=24){var rb=alg==='push'?4.2:alg==='hold'?1.6:0.5;v=Math.round(base*0.38*pm*rb*am*(sc/80));}
+    else if(h<=36)v=Math.round(base*0.16*am*(sc/80));
+    else v=Math.round(base*0.09*am*(sc/80));
+    return Math.max(1,v+Math.floor(Math.random()*v*0.18-v*0.09));
+  });
+}
+
+function uploadVideo(){
+  var ch=APP.channels[APP.activeIdx];
+  var title=document.getElementById('vid-title').value.trim();
+  if(!title){document.getElementById('vid-title').focus();return;}
+  var fmt=getSel('p-fmt'),hook=getSel('p-hook'),time=getSel('p-time'),streak=getSel('p-streak');
+  var isShort=fmt==='Short (under 60s)';
+  var thumb=isShort?'n/a':getSel('p-thumb');
+  var sc=scoreVideo(fmt,thumb,hook,time,streak,ch);
+  var base=isShort?950:fmt==='Long form (5–15 min)'?320:180;
+  var views=Math.max(15,Math.floor(base*(sc/50)*(ch.videos.length>4?1.15:1.0)*(0.75+Math.random()*0.5)));
+  var ctr=isShort?
+    parseFloat(Math.max(1.5,Math.min(3.5+(hook==='Strong hook'?3.0:hook==='Medium hook'?1.2:0)+(Math.random()*1.5-0.5),15)).toFixed(1)):
+    parseFloat(Math.max(1.1,Math.min(2.2+(thumb==='Elite (pro design)'?3.8:thumb==='Good (edited)'?1.6:0)+(hook==='Strong hook'?1.3:hook==='Medium hook'?0.5:0)+(Math.random()*1.2-0.3),14)).toFixed(1));
+  var ret=Math.max(14,Math.min((isShort?60:34)+(hook==='Strong hook'?13:hook==='Medium hook'?5:0)+Math.floor(Math.random()*14)-5,90));
+  var rate=0.0008+(sc/100)*0.009;
+  var newSubs=Math.max(0,Math.round(views*rate));
+  var subRate=parseFloat((newSubs/Math.max(views,1)*100).toFixed(2));
+  var alg=sc>60?'push':sc>36?'hold':'drop';
+  var curve=buildCurve(sc,fmt,time,alg);
+
+  ch.subs+=newSubs;ch.views+=views;ch.trust=Math.min(100,ch.trust+Math.floor(sc/6));
+  ch.nicheCounts[ch.niche]=(ch.nicheCounts[ch.niche]||0)+1;
+  if(isShort)ch.hasShort=true;if(fmt==='Long form (5–15 min)')ch.hasLong=true;
+  ch.ctrs.push(ctr);
+
+  var vid={title:title,fmt:fmt,thumb:thumb,hook:hook,time:time,streak:streak,sc:sc,views:views,ctr:ctr,ret:ret,subs:newSubs,subRate:subRate,alg:alg,curve:curve};
+  ch.videos.unshift(vid);
+
+  checkUnlocks(ch,ctr,streak);
+  updateStats();renderVidList();renderLessons();renderChart(vid);
+
+  var box=document.getElementById('upload-result');box.style.display='block';
+  var head=alg==='push'?'Algorithm pushed your video.':alg==='hold'?'Algorithm is watching.':'Algorithm suppressed your video.';
+  var tip=alg==='push'?'This formula works — note it and repeat it.':alg==='hold'?'Try a stronger hook next time.':isShort?'Stronger first-frame hook is the fix.':'Better thumbnail is the fix — it controls your CTR.';
+  box.innerHTML='<strong>'+head+'</strong><br><span style="font-size:12px;color:var(--text2)">'+views.toLocaleString()+' views &nbsp;·&nbsp; '+ctr+'% CTR &nbsp;·&nbsp; '+ret+'% retention &nbsp;·&nbsp; +'+newSubs+' subs ('+subRate+'%)<br><br>Score: '+sc+'/100 — '+tip+'<br><br>See the Chart tab for the full 48-hour curve.</span>';
+  document.getElementById('vid-title').value='';
+  swTab('chart',document.querySelectorAll('.tab')[3]);
+}
+
+function checkUnlocks(ch,ctr,streak){
+  var u=ch.unlocked;
+  var nc=Object.values(ch.nicheCounts).reduce(function(a,b){return a+b},0);
+  if(nc>=3&&u.indexOf('lb')<0)u.push('lb');
+  if(ch.hasShort&&ch.hasLong&&u.indexOf('lc')<0)u.push('lc');
+  if(ctr>6&&u.indexOf('ld')<0)u.push('ld');
+  if(ch.videos.length>=5&&u.indexOf('le')<0)u.push('le');
+  if(streak==='Daily 7+ days'&&u.indexOf('lf')<0)u.push('lf');
+}
+
+function updateStats(){
+  var ch=APP.channels[APP.activeIdx];
+  document.getElementById('s-subs').textContent=ch.subs.toLocaleString();
+  document.getElementById('s-views').textContent=ch.views.toLocaleString();
+  document.getElementById('s-subs-d').textContent=ch.videos.length?'+'+ch.videos[0].subs+' from last upload':'—';
+  document.getElementById('s-views-d').textContent=ch.videos.length+' video'+(ch.videos.length!==1?'s':'')+' posted';
+  var avg=ch.ctrs.length?(ch.ctrs.reduce(function(a,b){return a+b},0)/ch.ctrs.length).toFixed(1):'—';
+  document.getElementById('s-ctr').textContent=avg==='—'?'—':avg+'%';
+  document.getElementById('s-trust').textContent=ch.trust+'%';
+  document.getElementById('s-trust-d').textContent=ch.trust>60?'Algorithm trusts you':ch.trust>30?'Building momentum':'Just starting';
+  document.getElementById('ch-hdr-meta').textContent=ch.niche+' · '+ch.subs.toLocaleString()+' subs · '+ch.videos.length+' video'+(ch.videos.length!==1?'s':'');
+  tipI=(tipI+1)%TIPS.length;
+  document.getElementById('s-tip').textContent=TIPS[tipI];
+  var html=ch.videos.slice(0,4).map(function(v){
+    var col=v.alg==='push'?'var(--green)':v.alg==='hold'?'var(--amber)':'var(--red)';
+    var bg=v.alg==='push'?'var(--green-bg)':v.alg==='hold'?'var(--amber-bg)':'var(--red-bg)';
+    var lbl=v.alg==='push'?'Pushed':v.alg==='hold'?'Hold':'Buried';
+    return '<div class="recent-item">'
+      +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+v.title+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">'+v.views.toLocaleString()+' views · +'+v.subs+' subs ('+v.subRate+'%)</div></div>'
+      +'<div style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;background:'+bg+';color:'+col+';flex-shrink:0">'+lbl+'</div>'
+      +'</div>';
+  }).join('');
+  document.getElementById('recent-list').innerHTML=html||'<div style="font-size:12px;color:var(--text2)">No uploads yet.</div>';
+}
+
+function renderVidList(){
+  var ch=APP.channels[APP.activeIdx];
+  if(!ch.videos.length){document.getElementById('vid-list').innerHTML='<div class="empty-state">No videos yet. Go to Upload.</div>';return;}
+  document.getElementById('vid-list').innerHTML=ch.videos.map(function(v,i){
+    var bc=v.alg==='push'?'#639922':v.alg==='hold'?'#BA7517':'#E24B4A';
+    var bl=v.alg==='push'?'b-push':v.alg==='hold'?'b-hold':'b-bury';
+    var bt=v.alg==='push'?'Pushed':v.alg==='hold'?'On hold':'Buried';
+    return '<div class="vid-row" onclick="showChart('+i+')">'
+      +'<div class="vid-title">'+v.title+'<span class="badge '+bl+'">'+bt+'</span></div>'
+      +'<div class="vid-meta">'+v.fmt+(v.fmt!=='Short (under 60s)'?' · '+v.thumb:'')+'</div>'
+      +'<div class="ret-bar"><div class="ret-fill" style="width:'+v.ret+'%;background:'+bc+'"></div></div>'
+      +'<div class="vid-stats"><span>'+v.views.toLocaleString()+' views</span><span>'+v.ctr+'% CTR</span><span>'+v.ret+'% kept</span><span>+'+v.subs+' subs</span></div>'
+      +'</div>';
+  }).join('');
+}
+
+function showChart(i){renderChart(APP.channels[APP.activeIdx].videos[i]);swTab('chart',document.querySelectorAll('.tab')[3]);}
+
+function renderChart(vid){
+  var labels=['1h','2h','3h','5h','6h','12h','24h','36h','48h'];
+  var pc=['#FFE01B','#FFE01B','#EF9F27','#EF9F27','#EF9F27','#378ADD','#1D9E75','#888780','#888780'];
+  var isDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  var tc=isDark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.4)';
+  var gc=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.05)';
+  if(APP.chartInst){APP.chartInst.destroy();APP.chartInst=null;}
+  APP.chartInst=new Chart(document.getElementById('perf-chart').getContext('2d'),{
+    type:'bar',
+    data:{labels:labels,datasets:[{label:'Views/hr',data:vid.curve,backgroundColor:pc,borderRadius:3,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:function(i){return 'Hour '+i[0].label},label:function(i){return i.raw+' views'}}}},scales:{x:{ticks:{color:tc,font:{size:11},autoSkip:false},grid:{display:false}},y:{ticks:{color:tc,font:{size:11}},grid:{color:gc},beginAtZero:true}}}
+  });
+  document.getElementById('chart-title').textContent='"'+vid.title+'"';
+  document.getElementById('chart-sub').textContent=vid.fmt+' · '+(vid.alg==='push'?'Pushed by algorithm':vid.alg==='hold'?'On hold':'Suppressed by algorithm');
+  var peak=Math.max.apply(null,vid.curve);
+  var total=vid.curve.reduce(function(a,b){return a+b},0);
+  document.getElementById('cv-peak').textContent=peak.toLocaleString();
+  document.getElementById('cv-total').textContent=total.toLocaleString();
+  document.getElementById('cv-dec').textContent=vid.alg==='push'?'Pushed':vid.alg==='hold'?'On hold':'Buried';
+  document.getElementById('cv-dec-d').textContent=vid.alg==='push'?'Expanding reach':vid.alg==='hold'?'Watching signals':'Distribution pulled';
+  var traj=vid.curve[7]>vid.curve[5]?'Growing':'Fading';
+  document.getElementById('cv-traj').textContent=traj;
+  document.getElementById('cv-traj-d').textContent=traj==='Growing'?'Still climbing at 36h+':'Peak passed';
+  document.getElementById('chart-stats').style.display='block';
+}
+
+function renderLessons(){
+  var ch=APP.channels[APP.activeIdx];
+  document.getElementById('lessons-wrap').innerHTML=LESSONS.map(function(l){
+    var unlocked=l.always||ch.unlocked.indexOf(l.id)>=0;
+    return '<div class="lesson-card" style="opacity:'+(unlocked?'1':'0.3')+'">'
+      +'<div class="lesson-tag">'+(unlocked&&!l.always?'Unlocked':l.always?'Always unlocked':l.tag)+'</div>'
+      +'<div class="lesson-title">'+l.title+'</div>'
+      +'<div class="lesson-body">'+(unlocked?l.body:'Keep posting to unlock this lesson.')+'</div>'
+      +'</div>';
+  }).join('');
+}
+</script>
+</body>
+</html>
